@@ -1,1 +1,13 @@
 
+module.exports = {
+  apps: [
+    {
+      name: "deck-commander",
+      script: "dist/standalone-server.js",
+      env: {
+        NODE_ENV: "production",
+        PORT: 3000
+      }
+    }
+  ]
+};
