@@ -1,84 +1,51 @@
-# Deck Commander VPS Setup
+# Deck Commander – VPS Deployment
 
-## Current status
-- Backend build passes locally
-- API health endpoint works locally
-- Production server can be started from `dist/server/index.js`
+Ein einziger Express-Prozess liefert API + Frontend aus.
 
-## Live start checklist
-1. Copy the repo to your VPS
-2. Create a real `.env` file on the VPS with:
+## 1. Voraussetzungen
+- Node.js 20+
+- Clash Royale API Key von https://developer.clashroyale.com
+- Public IP deines Servers bei Supercell whitelisten (sonst 403)
 
+## 2. .env auf dem Server
 ```env
-CLASH_API_KEY=your_real_supercell_api_key
+CLASH_API_KEY=dein_supercell_key
 HOST=0.0.0.0
 PORT=3000
-VITE_API_BASE_URL=http://5.75.140.186:3000
+# WICHTIG: gleiche Origin wie der Server, damit das Frontend die API trifft
+VITE_API_BASE_URL=
 ```
+`VITE_API_BASE_URL=` (leer) → das Frontend ruft `/api/...` relativ auf, also automatisch über denselben Express-Port.
 
-3. Install dependencies and build:
-
+## 3. Build & Start
 ```bash
+cd deck-commander-main
 npm install
-npm run build:all
+npm run build:all          # baut Frontend (dist/client) + Server (dist/server)
+node dist/server/standalone.js
 ```
+Aufruf: `http://DEIN_SERVER:3000`
 
-4. Start the API permanently:
-
-```bash
-pm2 start dist/server/index.js --name clash-api
-pm2 save
-pm2 startup
-```
-
-5. Open the port in your VPS firewall:
-- `3000/tcp` for the API
-- later, `80/443` if you add a domain + HTTPS
-
-## Important
-- The frontend must be rebuilt if `VITE_API_BASE_URL` changes.
-- For production, use a domain and reverse proxy instead of exposing port 3000 directly.
-
-## 1. Environment
-Create `.env` in project root:
-
-```env
-CLASH_API_KEY=your_supercell_api_key
-HOST=0.0.0.0
-PORT=3000
-VITE_API_BASE_URL=http://5.75.140.186:3000
-```
-
-## 2. Local development
-Run frontend and backend in separate terminals:
-
-```bash
-npm install
-npm run dev:api
-npm run dev
-```
-
-Frontend: `http://localhost:5173`
-Backend health: `http://localhost:3000/api/health`
-
-## 3. Production build on VPS
-
-```bash
-npm install
-npm run build:all
-```
-
-## 4. Start backend on VPS
-
-```bash
-npm run start:api
-```
-
-For persistent process management:
-
+## 4. Persistent mit PM2
 ```bash
 npm install -g pm2
-pm2 start dist/server/index.js --name clash-api
+pm2 start ecosystem.config.cjs
 pm2 save
 pm2 startup
 ```
+
+## 5. Reverse Proxy (optional, mit Domain + HTTPS)
+nginx/Caddy auf 80/443 → `proxy_pass http://127.0.0.1:3000`.
+
+## Endpoints
+- `GET /api/health` → `{ ok: true }`
+- `GET /api/player/:tag` → Spielerdaten + Mock-Fallback bei API-Fehler
+- alles andere → SPA (`dist/client/index.html`)
+
+## Troubleshooting
+| Problem | Ursache |
+|---|---|
+| 403 Clash API | Server-IP nicht bei Supercell whitelisted |
+| Frontend lädt, API leer | `CLASH_API_KEY` fehlt in `.env` |
+| 404 auf `/` | `npm run build` vergessen → kein `dist/client` |
+| Mock Warning sichtbar | Backend bekam 403 oder Tag ungültig |
