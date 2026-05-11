@@ -12,6 +12,8 @@
     "build:all": "npm run build && npm run build:api",
     "preview": "vite preview",
     "start:api": "node dist/server/index.js",
+    "start": "node dist/server/standalone.js",
+    "start:all": "node dist/server/standalone.js",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
