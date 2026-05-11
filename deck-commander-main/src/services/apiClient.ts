@@ -12,10 +12,12 @@ export interface AnalyzeResponse extends AnalyzeApiResponse {
   recommendations: RecommendationResult;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+// Leerer Wert => same-origin (Frontend wird vom selben Express ausgeliefert).
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
 
 export async function analyzePlayerViaApi(tag: string): Promise<AnalyzeResponse> {
-  const response = await fetch(`${API_BASE_URL}/api/player/${encodeURIComponent(tag)}`);
+  const url = `${API_BASE_URL}/api/player/${encodeURIComponent(tag)}`;
+  const response = await fetch(url);
   if (!response.ok) {
     const message = await response.text().catch(() => "");
     throw new Error(message || `API Fehler ${response.status}`);
