@@ -13,12 +13,3 @@
   },
   "include": ["server/**/*.ts"]
 }
-{
-  "compilerOptions": {
-    "outDir": "dist",
-    "module": "CommonJS",
-    "target": "ES2020",
-    "esModuleInterop": true
-  },
-  "include": ["src/standalone-server.ts", "src/server.ts"]
-}
